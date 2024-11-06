@@ -13,7 +13,7 @@ class PostController extends Controller
     public function index()
     {
         //  $posts = post::all();
-         $posts = post::orderBY('id', 'desc')->get();
+         $posts = Post::orderBY('id', 'desc')->get();
         // $posts = Post::latest()->paginate(5);
         // dd($posts);
          return view('posts.index', compact('posts'));
@@ -51,7 +51,7 @@ class PostController extends Controller
   
         Post::create($input);
    
-        return redirect()->route('index')->with('success','Post Create Successfully.');
+        return redirect()->route('posts.index')->with('success','Post Create Successfully.');
     }
 
     /**
@@ -59,7 +59,7 @@ class PostController extends Controller
      */
     public function show(Post $post)
     {
-        //
+        return view('posts.show' , compact('post'));
     }
 
     /**
@@ -67,7 +67,7 @@ class PostController extends Controller
      */
     public function edit(Post $post)
     {
-        //
+        return view('posts.edit', compact('post'));
     }
 
     /**
@@ -75,7 +75,26 @@ class PostController extends Controller
      */
     public function update(Request $request, Post $post)
     {
-        //
+        $request->validate([
+            'name' => 'required',
+            'detail' => 'required',
+            'image' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ]);
+  
+        $input = $request->all();
+  
+        if ($image = $request->file('image')) {
+            $destinationPath = 'images/';
+            $postImage = date('YmdHis') . "." . $image->getClientOriginalExtension();
+            $image->move($destinationPath, $postImage);
+            $input['image'] = "$postImage";
+        }else{
+            unset($input['image']);
+        }
+          
+        $post->update($input);
+  
+        return redirect()->route('posts.index')->with('success','Post Update Successfully');
     }
 
     /**
